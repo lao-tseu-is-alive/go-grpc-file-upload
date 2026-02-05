@@ -20,7 +20,7 @@ import (
 
 const uploadDir = "uploads"
 
-// sanitizeFilename prevents path traversal attacks by stripping directory components
+// sanitizeFilename prevents path traversal attacks
 func sanitizeFilename(filename string) string {
 	base := filepath.Base(filename)
 	base = strings.ReplaceAll(base, "/", "_")
@@ -35,19 +35,20 @@ type Server struct {
 	fileuploadv1connect.UnimplementedFileUploadServiceHandler
 }
 
-// Upload handles streaming uploads using oneof pattern for type-safe protocol
+// Upload handles streaming uploads with the Commit message pattern:
+// 1. metadata -> 2. chunks... -> 3. finish_commit (hash verification)
 func (s *Server) Upload(
 	ctx context.Context, stream *connect.ClientStream[fileuploadv1.UploadRequest]) (*fileuploadv1.UploadResponse, error) {
 
-	var file *os.File
-	var total int64
-	var clientHash string
-	var filename string
-	var metadataReceived bool
-	hasher := sha256.New()
+	var (
+		file      *os.File
+		filename  string
+		totalSize int64
+		hasher    = sha256.New()
+	)
 
 	for stream.Receive() {
-		// Check context for cancellation/timeout
+		// Check context for cancellation
 		select {
 		case <-ctx.Done():
 			if file != nil {
@@ -58,49 +59,65 @@ func (s *Server) Upload(
 		default:
 		}
 
-		msg := stream.Msg()
+		req := stream.Msg()
 
-		// Handle oneof content using type switch
-		switch content := msg.Content.(type) {
+		switch payload := req.Payload.(type) {
+
 		case *fileuploadv1.UploadRequest_Metadata:
-			if metadataReceived {
-				return nil, errors.New("metadata already received; protocol violation")
+			if file != nil {
+				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("metadata already received"))
 			}
-			metadataReceived = true
-			meta := content.Metadata
 
-			log.Println("Upload - Title:", meta.Title)
-			log.Println("Upload - Client SHA256:", meta.Sha256)
-			clientHash = meta.Sha256
-
-			filename = sanitizeFilename(meta.Filename)
+			filename = sanitizeFilename(payload.Metadata.Filename)
 			safePath := filepath.Join(uploadDir, filename)
-			log.Println("Upload - Saving to:", safePath)
+			log.Printf("Upload started: %s (title: %s)", filename, payload.Metadata.Title)
 
-			f, err := os.Create(safePath)
+			var err error
+			file, err = os.Create(safePath)
 			if err != nil {
-				return nil, err
+				return nil, connect.NewError(connect.CodeInternal, err)
 			}
-			file = f
 			defer file.Close()
 
 		case *fileuploadv1.UploadRequest_Chunk:
-			if !metadataReceived {
-				return nil, errors.New("chunk received before metadata; protocol violation")
-			}
 			if file == nil {
-				return nil, errors.New("file not initialized")
+				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("metadata must be sent first"))
 			}
 
-			chunk := content.Chunk
-			if _, err := file.Write(chunk); err != nil {
-				return nil, err
+			// Write to file AND update hash
+			if _, err := file.Write(payload.Chunk); err != nil {
+				return nil, connect.NewError(connect.CodeInternal, err)
 			}
-			hasher.Write(chunk)
-			total += int64(len(chunk))
+			hasher.Write(payload.Chunk)
+			totalSize += int64(len(payload.Chunk))
+
+		case *fileuploadv1.UploadRequest_FinishCommit:
+			if file == nil {
+				return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("no file data received"))
+			}
+
+			// Final hash verification
+			serverHash := hex.EncodeToString(hasher.Sum(nil))
+			clientHash := payload.FinishCommit
+
+			log.Printf("Upload complete: %s (%d bytes)", filename, totalSize)
+			log.Printf("Hash verification - Server: %s, Client: %s", serverHash, clientHash)
+
+			if serverHash != clientHash {
+				log.Printf("HASH MISMATCH! Deleting corrupted file")
+				file.Close()
+				os.Remove(filepath.Join(uploadDir, filename))
+				return nil, connect.NewError(connect.CodeDataLoss, errors.New("checksum mismatch"))
+			}
+
+			return &fileuploadv1.UploadResponse{
+				Message: "Upload successful and verified",
+				Size:    totalSize,
+				HashOk:  true,
+			}, nil
 
 		default:
-			return nil, errors.New("unknown message type")
+			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("unknown message type"))
 		}
 	}
 
@@ -108,20 +125,7 @@ func (s *Server) Upload(
 		return nil, err
 	}
 
-	if !metadataReceived {
-		return nil, errors.New("no metadata received")
-	}
-
-	serverHash := hex.EncodeToString(hasher.Sum(nil))
-	ok := (serverHash == clientHash)
-
-	log.Println("Upload - Server SHA256:", serverHash, "OK:", ok)
-
-	return &fileuploadv1.UploadResponse{
-		Message: "ok",
-		Size:    total,
-		HashOk:  ok,
-	}, nil
+	return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("stream closed without commit"))
 }
 
 // UploadFile handles unary uploads from browser clients
@@ -131,31 +135,25 @@ func (s *Server) UploadFile(
 	filename := sanitizeFilename(req.Filename)
 	safePath := filepath.Join(uploadDir, filename)
 
-	log.Println("UploadFile - Title:", req.Title)
-	log.Println("UploadFile - Safe Path:", safePath)
-	log.Println("UploadFile - Client SHA256:", req.Sha256)
+	log.Printf("UploadFile: %s (title: %s)", filename, req.Title)
 
+	// Calculate and verify hash
 	hasher := sha256.New()
 	hasher.Write(req.Data)
 	serverHash := hex.EncodeToString(hasher.Sum(nil))
-	ok := (serverHash == req.Sha256)
+	hashOk := (serverHash == req.Sha256)
 
-	log.Println("UploadFile - Server SHA256:", serverHash, "OK:", ok)
+	log.Printf("Hash verification - Server: %s, Client: %s, OK: %v", serverHash, req.Sha256, hashOk)
 
-	file, err := os.Create(safePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	if _, err = file.Write(req.Data); err != nil {
-		return nil, err
+	// Write file
+	if err := os.WriteFile(safePath, req.Data, 0644); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
 	return &fileuploadv1.UploadResponse{
 		Message: "ok",
 		Size:    int64(len(req.Data)),
-		HashOk:  ok,
+		HashOk:  hashOk,
 	}, nil
 }
 

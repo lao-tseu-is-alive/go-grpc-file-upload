@@ -16,7 +16,7 @@ import (
 
 const (
 	serverURL = "http://localhost:8080"
-	chunkSize = 64 * 1024 // 64KB chunks
+	chunkSize = 32 * 1024 // 32KB chunks
 )
 
 func main() {
@@ -27,25 +27,18 @@ func main() {
 	path := os.Args[1]
 	title := os.Args[2]
 
-	// Open file with proper error handling
 	f, err := os.Open(path)
 	if err != nil {
 		log.Fatalf("failed to open file: %v", err)
 	}
 	defer f.Close()
 
-	// Get file info for logging
 	info, err := f.Stat()
 	if err != nil {
 		log.Fatalf("failed to stat file: %v", err)
 	}
 	log.Printf("Uploading: %s (%d bytes)", info.Name(), info.Size())
 
-	// Create hash calculator - will compute hash as we stream
-	hasher := sha256.New()
-	teeReader := io.TeeReader(f, hasher)
-
-	// Create client
 	client := fileuploadv1connect.NewFileUploadServiceClient(
 		http.DefaultClient,
 		serverURL,
@@ -56,36 +49,34 @@ func main() {
 		log.Fatalf("failed to create upload stream: %v", err)
 	}
 
-	// Send metadata first (using oneof pattern)
-	metadataMsg := &fileuploadv1.UploadRequest{
-		Content: &fileuploadv1.UploadRequest_Metadata{
-			Metadata: &fileuploadv1.FileUploadMetadata{
+	// Phase 1: Send metadata
+	err = stream.Send(&fileuploadv1.UploadRequest{
+		Payload: &fileuploadv1.UploadRequest_Metadata{
+			Metadata: &fileuploadv1.UploadMetadata{
 				Filename: filepath.Base(path),
 				Title:    title,
-				// SHA256 will be empty - we calculate after streaming
-				// Server will verify if we send it, or skip verification if empty
-				Sha256: "",
 			},
 		},
-	}
-	if err := stream.Send(metadataMsg); err != nil {
+	})
+	if err != nil {
 		log.Fatalf("failed to send metadata: %v", err)
 	}
 	log.Println("Sent metadata")
 
-	// Stream file chunks using TeeReader (calculates hash while reading)
+	// Phase 2: Stream chunks with TeeReader (calculates hash during read)
+	hasher := sha256.New()
+	reader := io.TeeReader(f, hasher)
 	buf := make([]byte, chunkSize)
 	var totalBytes int64
 
 	for {
-		n, err := teeReader.Read(buf)
+		n, err := reader.Read(buf)
 		if n > 0 {
-			chunkMsg := &fileuploadv1.UploadRequest{
-				Content: &fileuploadv1.UploadRequest_Chunk{
+			if sendErr := stream.Send(&fileuploadv1.UploadRequest{
+				Payload: &fileuploadv1.UploadRequest_Chunk{
 					Chunk: buf[:n],
 				},
-			}
-			if sendErr := stream.Send(chunkMsg); sendErr != nil {
+			}); sendErr != nil {
 				log.Fatalf("failed to send chunk: %v", sendErr)
 			}
 			totalBytes += int64(n)
@@ -97,26 +88,27 @@ func main() {
 			log.Fatalf("failed to read file: %v", err)
 		}
 	}
+	log.Printf("Sent %d bytes in chunks", totalBytes)
 
-	// Get final hash (calculated during streaming)
-	hash := hex.EncodeToString(hasher.Sum(nil))
-	log.Printf("Uploaded %d bytes, SHA256: %s", totalBytes, hash)
+	// Phase 3: Send finish_commit with calculated hash
+	clientHash := hex.EncodeToString(hasher.Sum(nil))
+	log.Printf("Sending commit with hash: %s", clientHash)
 
-	// Close stream and get response
+	err = stream.Send(&fileuploadv1.UploadRequest{
+		Payload: &fileuploadv1.UploadRequest_FinishCommit{
+			FinishCommit: clientHash,
+		},
+	})
+	if err != nil {
+		log.Fatalf("failed to send commit: %v", err)
+	}
+
+	// Get response
 	resp, err := stream.CloseAndReceive()
 	if err != nil {
 		log.Fatalf("upload failed: %v", err)
 	}
 
-	log.Printf("Server response: message=%s, size=%d, hash_ok=%v",
+	log.Printf("Server response: %s (size: %d, hash_ok: %v)",
 		resp.Message, resp.Size, resp.HashOk)
-
-	// Note: hash_ok will be false because we didn't send the hash upfront
-	// To enable server-side verification, we'd need a two-phase approach:
-	// 1. Pre-calculate hash (reads file twice), OR
-	// 2. Send hash in a final message (requires proto change), OR
-	// 3. Accept post-upload verification only
-	if !resp.HashOk {
-		log.Println("Note: Hash verification skipped (hash calculated after upload)")
-	}
 }

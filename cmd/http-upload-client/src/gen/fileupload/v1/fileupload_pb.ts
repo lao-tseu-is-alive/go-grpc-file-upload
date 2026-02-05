@@ -10,33 +10,41 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file fileupload/v1/fileupload.proto.
  */
 export const file_fileupload_v1_fileupload: GenFile = /*@__PURE__*/
-  fileDesc("Ch5maWxldXBsb2FkL3YxL2ZpbGV1cGxvYWQucHJvdG8SDWZpbGV1cGxvYWQudjEiYgoNVXBsb2FkUmVxdWVzdBI1CghtZXRhZGF0YRgBIAEoCzIhLmZpbGV1cGxvYWQudjEuRmlsZVVwbG9hZE1ldGFkYXRhSAASDwoFY2h1bmsYAiABKAxIAEIJCgdjb250ZW50IkUKEkZpbGVVcGxvYWRNZXRhZGF0YRIQCghmaWxlbmFtZRgBIAEoCRINCgV0aXRsZRgCIAEoCRIOCgZzaGEyNTYYAyABKAkiUgoRVXBsb2FkRmlsZVJlcXVlc3QSDAoEZGF0YRgBIAEoDBIQCghmaWxlbmFtZRgCIAEoCRINCgV0aXRsZRgDIAEoCRIOCgZzaGEyNTYYBCABKAkiQAoOVXBsb2FkUmVzcG9uc2USDwoHbWVzc2FnZRgBIAEoCRIMCgRzaXplGAIgASgDEg8KB2hhc2hfb2sYAyABKAgyqwEKEUZpbGVVcGxvYWRTZXJ2aWNlEkcKBlVwbG9hZBIcLmZpbGV1cGxvYWQudjEuVXBsb2FkUmVxdWVzdBodLmZpbGV1cGxvYWQudjEuVXBsb2FkUmVzcG9uc2UoARJNCgpVcGxvYWRGaWxlEiAuZmlsZXVwbG9hZC52MS5VcGxvYWRGaWxlUmVxdWVzdBodLmZpbGV1cGxvYWQudjEuVXBsb2FkUmVzcG9uc2VCygEKEWNvbS5maWxldXBsb2FkLnYxQg9GaWxldXBsb2FkUHJvdG9QAVpPZ2l0aHViLmNvbS9sYW8tdHNldS1pcy1hbGl2ZS9nby1ncnBjLWZpbGUtdXBsb2FkL2dlbi9maWxldXBsb2FkL3YxO2ZpbGV1cGxvYWR2MaICA0ZYWKoCDUZpbGV1cGxvYWQuVjHKAg1GaWxldXBsb2FkXFYx4gIZRmlsZXVwbG9hZFxWMVxHUEJNZXRhZGF0YeoCDkZpbGV1cGxvYWQ6OlYxYgZwcm90bzM");
+  fileDesc("Ch5maWxldXBsb2FkL3YxL2ZpbGV1cGxvYWQucHJvdG8SDWZpbGV1cGxvYWQudjEidwoNVXBsb2FkUmVxdWVzdBIxCghtZXRhZGF0YRgBIAEoCzIdLmZpbGV1cGxvYWQudjEuVXBsb2FkTWV0YWRhdGFIABIPCgVjaHVuaxgCIAEoDEgAEhcKDWZpbmlzaF9jb21taXQYAyABKAlIAEIJCgdwYXlsb2FkIjEKDlVwbG9hZE1ldGFkYXRhEhAKCGZpbGVuYW1lGAEgASgJEg0KBXRpdGxlGAIgASgJIlIKEVVwbG9hZEZpbGVSZXF1ZXN0EgwKBGRhdGEYASABKAwSEAoIZmlsZW5hbWUYAiABKAkSDQoFdGl0bGUYAyABKAkSDgoGc2hhMjU2GAQgASgJIkAKDlVwbG9hZFJlc3BvbnNlEg8KB21lc3NhZ2UYASABKAkSDAoEc2l6ZRgCIAEoAxIPCgdoYXNoX29rGAMgASgIMqsBChFGaWxlVXBsb2FkU2VydmljZRJHCgZVcGxvYWQSHC5maWxldXBsb2FkLnYxLlVwbG9hZFJlcXVlc3QaHS5maWxldXBsb2FkLnYxLlVwbG9hZFJlc3BvbnNlKAESTQoKVXBsb2FkRmlsZRIgLmZpbGV1cGxvYWQudjEuVXBsb2FkRmlsZVJlcXVlc3QaHS5maWxldXBsb2FkLnYxLlVwbG9hZFJlc3BvbnNlQsoBChFjb20uZmlsZXVwbG9hZC52MUIPRmlsZXVwbG9hZFByb3RvUAFaT2dpdGh1Yi5jb20vbGFvLXRzZXUtaXMtYWxpdmUvZ28tZ3JwYy1maWxlLXVwbG9hZC9nZW4vZmlsZXVwbG9hZC92MTtmaWxldXBsb2FkdjGiAgNGWFiqAg1GaWxldXBsb2FkLlYxygINRmlsZXVwbG9hZFxWMeICGUZpbGV1cGxvYWRcVjFcR1BCTWV0YWRhdGHqAg5GaWxldXBsb2FkOjpWMWIGcHJvdG8z");
 
 /**
- * Streaming upload request using oneof for type-safe protocol
+ * Streaming upload request using oneof for type-safe state machine
  *
  * @generated from message fileupload.v1.UploadRequest
  */
 export type UploadRequest = Message<"fileupload.v1.UploadRequest"> & {
   /**
-   * @generated from oneof fileupload.v1.UploadRequest.content
+   * @generated from oneof fileupload.v1.UploadRequest.payload
    */
-  content: {
+  payload: {
     /**
-     * First message: file metadata (required)
+     * Phase 1: Sent first - file metadata
      *
-     * @generated from field: fileupload.v1.FileUploadMetadata metadata = 1;
+     * @generated from field: fileupload.v1.UploadMetadata metadata = 1;
      */
-    value: FileUploadMetadata;
+    value: UploadMetadata;
     case: "metadata";
   } | {
     /**
-     * Subsequent messages: file data chunks
+     * Phase 2: Sent multiple times - file content chunks
      *
      * @generated from field: bytes chunk = 2;
      */
     value: Uint8Array;
     case: "chunk";
+  } | {
+    /**
+     * Phase 3: Sent last - client's calculated hash for verification
+     *
+     * @generated from field: string finish_commit = 3;
+     */
+    value: string;
+    case: "finishCommit";
   } | { case: undefined; value?: undefined };
 };
 
@@ -50,9 +58,9 @@ export const UploadRequestSchema: GenMessage<UploadRequest> = /*@__PURE__*/
 /**
  * Metadata for file upload (sent as first message in stream)
  *
- * @generated from message fileupload.v1.FileUploadMetadata
+ * @generated from message fileupload.v1.UploadMetadata
  */
-export type FileUploadMetadata = Message<"fileupload.v1.FileUploadMetadata"> & {
+export type UploadMetadata = Message<"fileupload.v1.UploadMetadata"> & {
   /**
    * @generated from field: string filename = 1;
    */
@@ -62,21 +70,13 @@ export type FileUploadMetadata = Message<"fileupload.v1.FileUploadMetadata"> & {
    * @generated from field: string title = 2;
    */
   title: string;
-
-  /**
-   * SHA-256 hash of complete file (optional, for post-upload verification)
-   * Note: With streaming, hash may be calculated after upload and verified server-side
-   *
-   * @generated from field: string sha256 = 3;
-   */
-  sha256: string;
 };
 
 /**
- * Describes the message fileupload.v1.FileUploadMetadata.
- * Use `create(FileUploadMetadataSchema)` to create a new message.
+ * Describes the message fileupload.v1.UploadMetadata.
+ * Use `create(UploadMetadataSchema)` to create a new message.
  */
-export const FileUploadMetadataSchema: GenMessage<FileUploadMetadata> = /*@__PURE__*/
+export const UploadMetadataSchema: GenMessage<UploadMetadata> = /*@__PURE__*/
   messageDesc(file_fileupload_v1_fileupload, 1);
 
 /**
@@ -146,7 +146,7 @@ export const UploadResponseSchema: GenMessage<UploadResponse> = /*@__PURE__*/
 export const FileUploadService: GenService<{
   /**
    * Streaming upload for native clients (Go, etc.)
-   * First message MUST be metadata, subsequent messages MUST be chunks
+   * Protocol: 1) metadata, 2) chunks..., 3) finish_commit
    *
    * @generated from rpc fileupload.v1.FileUploadService.Upload
    */
@@ -157,7 +157,6 @@ export const FileUploadService: GenService<{
   },
   /**
    * Unary upload for browser clients (Fetch API doesn't support client streaming)
-   * Note: For large files, use the chunked upload pattern instead
    *
    * @generated from rpc fileupload.v1.FileUploadService.UploadFile
    */

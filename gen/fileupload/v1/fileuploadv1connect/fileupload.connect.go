@@ -44,10 +44,9 @@ const (
 // FileUploadServiceClient is a client for the fileupload.v1.FileUploadService service.
 type FileUploadServiceClient interface {
 	// Streaming upload for native clients (Go, etc.)
-	// First message MUST be metadata, subsequent messages MUST be chunks
+	// Protocol: 1) metadata, 2) chunks..., 3) finish_commit
 	Upload(context.Context) (*connect.ClientStreamForClientSimple[v1.UploadRequest, v1.UploadResponse], error)
 	// Unary upload for browser clients (Fetch API doesn't support client streaming)
-	// Note: For large files, use the chunked upload pattern instead
 	UploadFile(context.Context, *v1.UploadFileRequest) (*v1.UploadResponse, error)
 }
 
@@ -100,10 +99,9 @@ func (c *fileUploadServiceClient) UploadFile(ctx context.Context, req *v1.Upload
 // FileUploadServiceHandler is an implementation of the fileupload.v1.FileUploadService service.
 type FileUploadServiceHandler interface {
 	// Streaming upload for native clients (Go, etc.)
-	// First message MUST be metadata, subsequent messages MUST be chunks
+	// Protocol: 1) metadata, 2) chunks..., 3) finish_commit
 	Upload(context.Context, *connect.ClientStream[v1.UploadRequest]) (*v1.UploadResponse, error)
 	// Unary upload for browser clients (Fetch API doesn't support client streaming)
-	// Note: For large files, use the chunked upload pattern instead
 	UploadFile(context.Context, *v1.UploadFileRequest) (*v1.UploadResponse, error)
 }
 
