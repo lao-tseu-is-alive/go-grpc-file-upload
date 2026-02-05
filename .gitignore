@@ -30,3 +30,5 @@ go.work.sum
 # Editor/IDE
 .idea/
 .vscode/
+/upload_test.bin
+/uploads/upload_test.bin

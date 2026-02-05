@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"os"
 
+	"connectrpc.com/connect"
+	"github.com/rs/cors"
+
 	fileuploadv1 "github.com/lao-tseu-is-alive/go-grpc-file-upload/gen/fileupload/v1"
 	"github.com/lao-tseu-is-alive/go-grpc-file-upload/gen/fileupload/v1/fileuploadv1connect"
-
-	"connectrpc.com/connect"
 )
 
 type Server struct {
@@ -70,6 +71,16 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle(fileuploadv1connect.NewFileUploadServiceHandler(&Server{}))
 
+	// Configure CORS for browser access
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"}, // In production, restrict to specific origins
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: false,
+		// Required for Connect streaming
+		ExposedHeaders: []string{"Connect-Protocol-Version", "Grpc-Status", "Grpc-Message"},
+	})
+
 	log.Println("Server on :8080")
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(":8080", corsHandler.Handler(mux))
 }

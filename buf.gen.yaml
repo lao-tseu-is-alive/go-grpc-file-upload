@@ -8,6 +8,17 @@ plugins:
     opt:
       - paths=source_relative
       - simple
+  # This will invoke protoc-gen-es and write output to http-upload-client/src/gen
+  - local: protoc-gen-es
+    out: cmd/http-upload-client/src/gen
+    # Also generate any imported dependencies
+    include_imports: true
+    # Add more plugin options here
+    opt: target=ts
+  # Generate Connect service client for TypeScript
+  - local: protoc-gen-connect-es
+    out: cmd/http-upload-client/src/gen
+    opt: target=ts
 managed:
   enabled: true
   override:

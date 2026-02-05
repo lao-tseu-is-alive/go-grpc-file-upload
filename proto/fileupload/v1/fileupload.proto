@@ -6,7 +6,11 @@ package fileupload.v1;
 option go_package = "github.com/lao-tseu-is-alive/go-grpc-file-upload/gen/fileupload/v1;fileuploadv1";
 
 service FileUploadService {
+  // Streaming upload for native clients (Go, etc.)
   rpc Upload(stream UploadRequest) returns (UploadResponse);
+  
+  // Unary upload for browser clients (Fetch API doesn't support client streaming)
+  rpc UploadFile(UploadFileRequest) returns (UploadResponse);
 }
 
 message UploadRequest {
@@ -14,6 +18,14 @@ message UploadRequest {
   string filename = 2;
 
   // Metadata send only in first chunk
+  string title = 3;
+  string sha256 = 4;
+}
+
+// Single request for browser uploads
+message UploadFileRequest {
+  bytes data = 1;
+  string filename = 2;
   string title = 3;
   string sha256 = 4;
 }
