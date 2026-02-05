@@ -36,11 +36,17 @@ const (
 	// FileUploadServiceUploadProcedure is the fully-qualified name of the FileUploadService's Upload
 	// RPC.
 	FileUploadServiceUploadProcedure = "/fileupload.v1.FileUploadService/Upload"
+	// FileUploadServiceUploadFileProcedure is the fully-qualified name of the FileUploadService's
+	// UploadFile RPC.
+	FileUploadServiceUploadFileProcedure = "/fileupload.v1.FileUploadService/UploadFile"
 )
 
 // FileUploadServiceClient is a client for the fileupload.v1.FileUploadService service.
 type FileUploadServiceClient interface {
+	// Streaming upload for native clients (Go, etc.)
 	Upload(context.Context) (*connect.ClientStreamForClientSimple[v1.UploadRequest, v1.UploadResponse], error)
+	// Unary upload for browser clients (Fetch API doesn't support client streaming)
+	UploadFile(context.Context, *v1.UploadFileRequest) (*v1.UploadResponse, error)
 }
 
 // NewFileUploadServiceClient constructs a client for the fileupload.v1.FileUploadService service.
@@ -60,12 +66,19 @@ func NewFileUploadServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(fileUploadServiceMethods.ByName("Upload")),
 			connect.WithClientOptions(opts...),
 		),
+		uploadFile: connect.NewClient[v1.UploadFileRequest, v1.UploadResponse](
+			httpClient,
+			baseURL+FileUploadServiceUploadFileProcedure,
+			connect.WithSchema(fileUploadServiceMethods.ByName("UploadFile")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // fileUploadServiceClient implements FileUploadServiceClient.
 type fileUploadServiceClient struct {
-	upload *connect.Client[v1.UploadRequest, v1.UploadResponse]
+	upload     *connect.Client[v1.UploadRequest, v1.UploadResponse]
+	uploadFile *connect.Client[v1.UploadFileRequest, v1.UploadResponse]
 }
 
 // Upload calls fileupload.v1.FileUploadService.Upload.
@@ -73,9 +86,21 @@ func (c *fileUploadServiceClient) Upload(ctx context.Context) (*connect.ClientSt
 	return c.upload.CallClientStreamSimple(ctx)
 }
 
+// UploadFile calls fileupload.v1.FileUploadService.UploadFile.
+func (c *fileUploadServiceClient) UploadFile(ctx context.Context, req *v1.UploadFileRequest) (*v1.UploadResponse, error) {
+	response, err := c.uploadFile.CallUnary(ctx, connect.NewRequest(req))
+	if response != nil {
+		return response.Msg, err
+	}
+	return nil, err
+}
+
 // FileUploadServiceHandler is an implementation of the fileupload.v1.FileUploadService service.
 type FileUploadServiceHandler interface {
+	// Streaming upload for native clients (Go, etc.)
 	Upload(context.Context, *connect.ClientStream[v1.UploadRequest]) (*v1.UploadResponse, error)
+	// Unary upload for browser clients (Fetch API doesn't support client streaming)
+	UploadFile(context.Context, *v1.UploadFileRequest) (*v1.UploadResponse, error)
 }
 
 // NewFileUploadServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -91,10 +116,18 @@ func NewFileUploadServiceHandler(svc FileUploadServiceHandler, opts ...connect.H
 		connect.WithSchema(fileUploadServiceMethods.ByName("Upload")),
 		connect.WithHandlerOptions(opts...),
 	)
+	fileUploadServiceUploadFileHandler := connect.NewUnaryHandlerSimple(
+		FileUploadServiceUploadFileProcedure,
+		svc.UploadFile,
+		connect.WithSchema(fileUploadServiceMethods.ByName("UploadFile")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/fileupload.v1.FileUploadService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FileUploadServiceUploadProcedure:
 			fileUploadServiceUploadHandler.ServeHTTP(w, r)
+		case FileUploadServiceUploadFileProcedure:
+			fileUploadServiceUploadFileHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -106,4 +139,8 @@ type UnimplementedFileUploadServiceHandler struct{}
 
 func (UnimplementedFileUploadServiceHandler) Upload(context.Context, *connect.ClientStream[v1.UploadRequest]) (*v1.UploadResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("fileupload.v1.FileUploadService.Upload is not implemented"))
+}
+
+func (UnimplementedFileUploadServiceHandler) UploadFile(context.Context, *v1.UploadFileRequest) (*v1.UploadResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("fileupload.v1.FileUploadService.UploadFile is not implemented"))
 }

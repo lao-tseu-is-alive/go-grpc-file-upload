@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { UploadRequest, UploadResponse } from "./fileupload_pb.js";
+import { UploadFileRequest, UploadRequest, UploadResponse } from "./fileupload_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -13,6 +13,8 @@ export const FileUploadService = {
   typeName: "fileupload.v1.FileUploadService",
   methods: {
     /**
+     * Streaming upload for native clients (Go, etc.)
+     *
      * @generated from rpc fileupload.v1.FileUploadService.Upload
      */
     upload: {
@@ -20,6 +22,17 @@ export const FileUploadService = {
       I: UploadRequest,
       O: UploadResponse,
       kind: MethodKind.ClientStreaming,
+    },
+    /**
+     * Unary upload for browser clients (Fetch API doesn't support client streaming)
+     *
+     * @generated from rpc fileupload.v1.FileUploadService.UploadFile
+     */
+    uploadFile: {
+      name: "UploadFile",
+      I: UploadFileRequest,
+      O: UploadResponse,
+      kind: MethodKind.Unary,
     },
   }
 } as const;

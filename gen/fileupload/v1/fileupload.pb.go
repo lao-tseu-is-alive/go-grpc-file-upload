@@ -90,6 +90,75 @@ func (x *UploadRequest) GetSha256() string {
 	return ""
 }
 
+// Single request for browser uploads
+type UploadFileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Sha256        string                 `protobuf:"bytes,4,opt,name=sha256,proto3" json:"sha256,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadFileRequest) Reset() {
+	*x = UploadFileRequest{}
+	mi := &file_fileupload_v1_fileupload_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadFileRequest) ProtoMessage() {}
+
+func (x *UploadFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_fileupload_v1_fileupload_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadFileRequest.ProtoReflect.Descriptor instead.
+func (*UploadFileRequest) Descriptor() ([]byte, []int) {
+	return file_fileupload_v1_fileupload_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UploadFileRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UploadFileRequest) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *UploadFileRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *UploadFileRequest) GetSha256() string {
+	if x != nil {
+		return x.Sha256
+	}
+	return ""
+}
+
 type UploadResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
@@ -101,7 +170,7 @@ type UploadResponse struct {
 
 func (x *UploadResponse) Reset() {
 	*x = UploadResponse{}
-	mi := &file_fileupload_v1_fileupload_proto_msgTypes[1]
+	mi := &file_fileupload_v1_fileupload_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -113,7 +182,7 @@ func (x *UploadResponse) String() string {
 func (*UploadResponse) ProtoMessage() {}
 
 func (x *UploadResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_fileupload_v1_fileupload_proto_msgTypes[1]
+	mi := &file_fileupload_v1_fileupload_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +195,7 @@ func (x *UploadResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadResponse.ProtoReflect.Descriptor instead.
 func (*UploadResponse) Descriptor() ([]byte, []int) {
-	return file_fileupload_v1_fileupload_proto_rawDescGZIP(), []int{1}
+	return file_fileupload_v1_fileupload_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UploadResponse) GetMessage() string {
@@ -159,13 +228,20 @@ const file_fileupload_v1_fileupload_proto_rawDesc = "" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06sha256\x18\x04 \x01(\tR\x06sha256\"q\n" +
+	"\x11UploadFileRequest\x12\x12\n" +
+	"\x04data\x18\x01 \x01(\fR\x04data\x12\x1a\n" +
+	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
 	"\x06sha256\x18\x04 \x01(\tR\x06sha256\"W\n" +
 	"\x0eUploadResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x12\n" +
 	"\x04size\x18\x02 \x01(\x03R\x04size\x12\x17\n" +
-	"\ahash_ok\x18\x03 \x01(\bR\x06hashOk2\\\n" +
+	"\ahash_ok\x18\x03 \x01(\bR\x06hashOk2\xab\x01\n" +
 	"\x11FileUploadService\x12G\n" +
-	"\x06Upload\x12\x1c.fileupload.v1.UploadRequest\x1a\x1d.fileupload.v1.UploadResponse(\x01B\xca\x01\n" +
+	"\x06Upload\x12\x1c.fileupload.v1.UploadRequest\x1a\x1d.fileupload.v1.UploadResponse(\x01\x12M\n" +
+	"\n" +
+	"UploadFile\x12 .fileupload.v1.UploadFileRequest\x1a\x1d.fileupload.v1.UploadResponseB\xca\x01\n" +
 	"\x11com.fileupload.v1B\x0fFileuploadProtoP\x01ZOgithub.com/lao-tseu-is-alive/go-grpc-file-upload/gen/fileupload/v1;fileuploadv1\xa2\x02\x03FXX\xaa\x02\rFileupload.V1\xca\x02\rFileupload\\V1\xe2\x02\x19Fileupload\\V1\\GPBMetadata\xea\x02\x0eFileupload::V1b\x06proto3"
 
 var (
@@ -180,16 +256,19 @@ func file_fileupload_v1_fileupload_proto_rawDescGZIP() []byte {
 	return file_fileupload_v1_fileupload_proto_rawDescData
 }
 
-var file_fileupload_v1_fileupload_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_fileupload_v1_fileupload_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_fileupload_v1_fileupload_proto_goTypes = []any{
-	(*UploadRequest)(nil),  // 0: fileupload.v1.UploadRequest
-	(*UploadResponse)(nil), // 1: fileupload.v1.UploadResponse
+	(*UploadRequest)(nil),     // 0: fileupload.v1.UploadRequest
+	(*UploadFileRequest)(nil), // 1: fileupload.v1.UploadFileRequest
+	(*UploadResponse)(nil),    // 2: fileupload.v1.UploadResponse
 }
 var file_fileupload_v1_fileupload_proto_depIdxs = []int32{
 	0, // 0: fileupload.v1.FileUploadService.Upload:input_type -> fileupload.v1.UploadRequest
-	1, // 1: fileupload.v1.FileUploadService.Upload:output_type -> fileupload.v1.UploadResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	1, // 1: fileupload.v1.FileUploadService.UploadFile:input_type -> fileupload.v1.UploadFileRequest
+	2, // 2: fileupload.v1.FileUploadService.Upload:output_type -> fileupload.v1.UploadResponse
+	2, // 3: fileupload.v1.FileUploadService.UploadFile:output_type -> fileupload.v1.UploadResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -206,7 +285,7 @@ func file_fileupload_v1_fileupload_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_fileupload_v1_fileupload_proto_rawDesc), len(file_fileupload_v1_fileupload_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

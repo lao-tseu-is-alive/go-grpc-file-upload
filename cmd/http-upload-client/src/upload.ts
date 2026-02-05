@@ -1,7 +1,7 @@
 import { createClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { create } from "@bufbuild/protobuf";
-import { FileUploadService, UploadRequestSchema, type UploadRequest } from "./gen/fileupload/v1/fileupload_pb.js";
+import { FileUploadService, UploadFileRequestSchema } from "./gen/fileupload/v1/fileupload_pb.js";
 
 const transport = createConnectTransport({ baseUrl: "http://localhost:8080" });
 const client = createClient(FileUploadService, transport);
@@ -17,8 +17,7 @@ async function sha256File(file: File): Promise<string> {
 }
 
 export interface UploadProgress {
-  bytesUploaded: number;
-  totalBytes: number;
+  phase: "hashing" | "uploading" | "complete";
   percent: number;
 }
 
@@ -34,64 +33,35 @@ export async function uploadFile(
   title: string,
   onProgress?: (progress: UploadProgress) => void
 ): Promise<UploadResult> {
-  // Calculate hash first (this reads the entire file)
-  onProgress?.({ bytesUploaded: 0, totalBytes: file.size, percent: 0 });
+  // Phase 1: Calculate hash
+  onProgress?.({ phase: "hashing", percent: 0 });
 
   const hash = await sha256File(file);
   console.log("File SHA-256:", hash);
 
-  const chunkSize = 64 * 1024; // 64KB chunks
-  const chunks: UploadRequest[] = [];
+  onProgress?.({ phase: "hashing", percent: 100 });
 
-  // Read the file and create all chunks upfront
-  // (Browser Fetch API doesn't support streaming request bodies)
+  // Phase 2: Read file and upload
+  onProgress?.({ phase: "uploading", percent: 0 });
+
   const buffer = await file.arrayBuffer();
   const data = new Uint8Array(buffer);
 
-  let offset = 0;
-  let first = true;
-
-  while (offset < data.length) {
-    const chunk = data.slice(offset, offset + chunkSize);
-    offset += chunk.length;
-
-    const request = create(UploadRequestSchema, {
-      filename: file.name,
-      data: chunk,
-    });
-
-    if (first) {
-      request.title = title;
-      request.sha256 = hash;
-      first = false;
-    }
-
-    chunks.push(request);
-
-    // Report progress during chunk creation
-    onProgress?.({
-      bytesUploaded: offset,
-      totalBytes: data.length,
-      percent: Math.round((offset / data.length) * 50), // First 50% is preparation
-    });
-  }
-
-  // Create an async generator from the chunks array
-  async function* requestStream() {
-    let processed = 0;
-    for (const chunk of chunks) {
-      processed += chunk.data.length;
-      onProgress?.({
-        bytesUploaded: processed,
-        totalBytes: data.length,
-        percent: 50 + Math.round((processed / data.length) * 50), // Last 50% is upload
-      });
-      yield chunk;
-    }
-  }
+  const request = create(UploadFileRequestSchema, {
+    filename: file.name,
+    title: title,
+    sha256: hash,
+    data: data,
+  });
 
   try {
-    const response = await client.upload(requestStream());
+    onProgress?.({ phase: "uploading", percent: 50 });
+
+    // Use unary uploadFile RPC (works in browsers, unlike streaming)
+    const response = await client.uploadFile(request);
+
+    onProgress?.({ phase: "complete", percent: 100 });
+
     return {
       success: true,
       message: response.message,
@@ -125,15 +95,21 @@ export function setupUpload(element: HTMLButtonElement) {
 
     const title = titleInput?.value || file.name;
     element.disabled = true;
-    statusDiv.textContent = "Preparing upload...";
+    statusDiv.textContent = "Calculating file hash...";
     statusDiv.className = "status";
     progressBar.value = 0;
     progressBar.style.display = "block";
 
     const result = await uploadFile(file, title, (progress) => {
-      progressBar.value = progress.percent;
-      const phase = progress.percent <= 50 ? "Preparing" : "Uploading";
-      statusDiv.textContent = `${phase}: ${progress.percent}% (${(progress.bytesUploaded / 1024 / 1024).toFixed(1)} MB / ${(progress.totalBytes / 1024 / 1024).toFixed(1)} MB)`;
+      if (progress.phase === "hashing") {
+        progressBar.value = progress.percent * 0.3; // 0-30%
+        statusDiv.textContent = "Calculating SHA-256 hash...";
+      } else if (progress.phase === "uploading") {
+        progressBar.value = 30 + progress.percent * 0.7; // 30-100%
+        statusDiv.textContent = `Uploading ${(file.size / 1024 / 1024).toFixed(1)} MB...`;
+      } else {
+        progressBar.value = 100;
+      }
     });
 
     element.disabled = false;

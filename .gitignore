@@ -32,3 +32,8 @@ go.work.sum
 .vscode/
 /upload_test.bin
 /uploads/upload_test.bin
+/uploads/medium_upload_test.bin
+/medium_upload_test.bin
+/server
+/uploads/small_upload_test.bin
+/small_upload_test.bin

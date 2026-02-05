@@ -65,6 +65,41 @@ func (s *Server) Upload(
 	return resp, nil
 }
 
+// UploadFile handles unary uploads from browser clients (Fetch API doesn't support client streaming)
+func (s *Server) UploadFile(
+	ctx context.Context, req *fileuploadv1.UploadFileRequest) (*fileuploadv1.UploadResponse, error) {
+
+	log.Println("UploadFile - Title:", req.Title)
+	log.Println("UploadFile - Filename:", req.Filename)
+	log.Println("UploadFile - Client SHA256:", req.Sha256)
+
+	// Calculate server-side hash
+	hasher := sha256.New()
+	hasher.Write(req.Data)
+	serverHash := hex.EncodeToString(hasher.Sum(nil))
+	ok := (serverHash == req.Sha256)
+
+	log.Println("UploadFile - Server SHA256:", serverHash, "OK:", ok)
+
+	// Write file
+	file, err := os.Create("uploads/" + req.Filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	_, err = file.Write(req.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &fileuploadv1.UploadResponse{
+		Message: "ok",
+		Size:    int64(len(req.Data)),
+		HashOk:  ok,
+	}, nil
+}
+
 func main() {
 	os.MkdirAll("uploads", 0755)
 

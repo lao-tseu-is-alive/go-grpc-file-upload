@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file fileupload/v1/fileupload.proto.
  */
 export const file_fileupload_v1_fileupload: GenFile = /*@__PURE__*/
-  fileDesc("Ch5maWxldXBsb2FkL3YxL2ZpbGV1cGxvYWQucHJvdG8SDWZpbGV1cGxvYWQudjEiTgoNVXBsb2FkUmVxdWVzdBIMCgRkYXRhGAEgASgMEhAKCGZpbGVuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnNoYTI1NhgEIAEoCSJACg5VcGxvYWRSZXNwb25zZRIPCgdtZXNzYWdlGAEgASgJEgwKBHNpemUYAiABKAMSDwoHaGFzaF9vaxgDIAEoCDJcChFGaWxlVXBsb2FkU2VydmljZRJHCgZVcGxvYWQSHC5maWxldXBsb2FkLnYxLlVwbG9hZFJlcXVlc3QaHS5maWxldXBsb2FkLnYxLlVwbG9hZFJlc3BvbnNlKAFCygEKEWNvbS5maWxldXBsb2FkLnYxQg9GaWxldXBsb2FkUHJvdG9QAVpPZ2l0aHViLmNvbS9sYW8tdHNldS1pcy1hbGl2ZS9nby1ncnBjLWZpbGUtdXBsb2FkL2dlbi9maWxldXBsb2FkL3YxO2ZpbGV1cGxvYWR2MaICA0ZYWKoCDUZpbGV1cGxvYWQuVjHKAg1GaWxldXBsb2FkXFYx4gIZRmlsZXVwbG9hZFxWMVxHUEJNZXRhZGF0YeoCDkZpbGV1cGxvYWQ6OlYxYgZwcm90bzM");
+  fileDesc("Ch5maWxldXBsb2FkL3YxL2ZpbGV1cGxvYWQucHJvdG8SDWZpbGV1cGxvYWQudjEiTgoNVXBsb2FkUmVxdWVzdBIMCgRkYXRhGAEgASgMEhAKCGZpbGVuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnNoYTI1NhgEIAEoCSJSChFVcGxvYWRGaWxlUmVxdWVzdBIMCgRkYXRhGAEgASgMEhAKCGZpbGVuYW1lGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnNoYTI1NhgEIAEoCSJACg5VcGxvYWRSZXNwb25zZRIPCgdtZXNzYWdlGAEgASgJEgwKBHNpemUYAiABKAMSDwoHaGFzaF9vaxgDIAEoCDKrAQoRRmlsZVVwbG9hZFNlcnZpY2USRwoGVXBsb2FkEhwuZmlsZXVwbG9hZC52MS5VcGxvYWRSZXF1ZXN0Gh0uZmlsZXVwbG9hZC52MS5VcGxvYWRSZXNwb25zZSgBEk0KClVwbG9hZEZpbGUSIC5maWxldXBsb2FkLnYxLlVwbG9hZEZpbGVSZXF1ZXN0Gh0uZmlsZXVwbG9hZC52MS5VcGxvYWRSZXNwb25zZULKAQoRY29tLmZpbGV1cGxvYWQudjFCD0ZpbGV1cGxvYWRQcm90b1ABWk9naXRodWIuY29tL2xhby10c2V1LWlzLWFsaXZlL2dvLWdycGMtZmlsZS11cGxvYWQvZ2VuL2ZpbGV1cGxvYWQvdjE7ZmlsZXVwbG9hZHYxogIDRlhYqgINRmlsZXVwbG9hZC5WMcoCDUZpbGV1cGxvYWRcVjHiAhlGaWxldXBsb2FkXFYxXEdQQk1ldGFkYXRh6gIORmlsZXVwbG9hZDo6VjFiBnByb3RvMw");
 
 /**
  * @generated from message fileupload.v1.UploadRequest
@@ -47,6 +47,40 @@ export const UploadRequestSchema: GenMessage<UploadRequest> = /*@__PURE__*/
   messageDesc(file_fileupload_v1_fileupload, 0);
 
 /**
+ * Single request for browser uploads
+ *
+ * @generated from message fileupload.v1.UploadFileRequest
+ */
+export type UploadFileRequest = Message<"fileupload.v1.UploadFileRequest"> & {
+  /**
+   * @generated from field: bytes data = 1;
+   */
+  data: Uint8Array;
+
+  /**
+   * @generated from field: string filename = 2;
+   */
+  filename: string;
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * @generated from field: string sha256 = 4;
+   */
+  sha256: string;
+};
+
+/**
+ * Describes the message fileupload.v1.UploadFileRequest.
+ * Use `create(UploadFileRequestSchema)` to create a new message.
+ */
+export const UploadFileRequestSchema: GenMessage<UploadFileRequest> = /*@__PURE__*/
+  messageDesc(file_fileupload_v1_fileupload, 1);
+
+/**
  * @generated from message fileupload.v1.UploadResponse
  */
 export type UploadResponse = Message<"fileupload.v1.UploadResponse"> & {
@@ -71,18 +105,30 @@ export type UploadResponse = Message<"fileupload.v1.UploadResponse"> & {
  * Use `create(UploadResponseSchema)` to create a new message.
  */
 export const UploadResponseSchema: GenMessage<UploadResponse> = /*@__PURE__*/
-  messageDesc(file_fileupload_v1_fileupload, 1);
+  messageDesc(file_fileupload_v1_fileupload, 2);
 
 /**
  * @generated from service fileupload.v1.FileUploadService
  */
 export const FileUploadService: GenService<{
   /**
+   * Streaming upload for native clients (Go, etc.)
+   *
    * @generated from rpc fileupload.v1.FileUploadService.Upload
    */
   upload: {
     methodKind: "client_streaming";
     input: typeof UploadRequestSchema;
+    output: typeof UploadResponseSchema;
+  },
+  /**
+   * Unary upload for browser clients (Fetch API doesn't support client streaming)
+   *
+   * @generated from rpc fileupload.v1.FileUploadService.UploadFile
+   */
+  uploadFile: {
+    methodKind: "unary";
+    input: typeof UploadFileRequestSchema;
     output: typeof UploadResponseSchema;
   },
 }> = /*@__PURE__*/
