@@ -2,27 +2,38 @@ syntax = "proto3";
 
 package fileupload.v1;
 
-
 option go_package = "github.com/lao-tseu-is-alive/go-grpc-file-upload/gen/fileupload/v1;fileuploadv1";
 
 service FileUploadService {
   // Streaming upload for native clients (Go, etc.)
+  // First message MUST be metadata, subsequent messages MUST be chunks
   rpc Upload(stream UploadRequest) returns (UploadResponse);
   
   // Unary upload for browser clients (Fetch API doesn't support client streaming)
+  // Note: For large files, use the chunked upload pattern instead
   rpc UploadFile(UploadFileRequest) returns (UploadResponse);
 }
 
+// Streaming upload request using oneof for type-safe protocol
 message UploadRequest {
-  bytes data = 1;
-  string filename = 2;
-
-  // Metadata send only in first chunk
-  string title = 3;
-  string sha256 = 4;
+  oneof content {
+    // First message: file metadata (required)
+    FileUploadMetadata metadata = 1;
+    // Subsequent messages: file data chunks
+    bytes chunk = 2;
+  }
 }
 
-// Single request for browser uploads
+// Metadata for file upload (sent as first message in stream)
+message FileUploadMetadata {
+  string filename = 1;
+  string title = 2;
+  // SHA-256 hash of complete file (optional, for post-upload verification)
+  // Note: With streaming, hash may be calculated after upload and verified server-side
+  string sha256 = 3;
+}
+
+// Single request for browser uploads (unary)
 message UploadFileRequest {
   bytes data = 1;
   string filename = 2;
@@ -35,4 +46,3 @@ message UploadResponse {
   int64 size = 2;
   bool hash_ok = 3;
 }
-

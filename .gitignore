@@ -37,3 +37,4 @@ go.work.sum
 /server
 /uploads/small_upload_test.bin
 /small_upload_test.bin
+/client

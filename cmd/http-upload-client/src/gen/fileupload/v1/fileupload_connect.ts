@@ -14,6 +14,7 @@ export const FileUploadService = {
   methods: {
     /**
      * Streaming upload for native clients (Go, etc.)
+     * First message MUST be metadata, subsequent messages MUST be chunks
      *
      * @generated from rpc fileupload.v1.FileUploadService.Upload
      */
@@ -25,6 +26,7 @@ export const FileUploadService = {
     },
     /**
      * Unary upload for browser clients (Fetch API doesn't support client streaming)
+     * Note: For large files, use the chunked upload pattern instead
      *
      * @generated from rpc fileupload.v1.FileUploadService.UploadFile
      */
